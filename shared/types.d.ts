@@ -12,18 +12,18 @@ export type Movie =   {
   title: string,
   video: boolean,
   vote_average: number,
-  vote_count: number,
-  cast?: MovieCast[]; 
+  vote_count: number
 }
-export type MovieCast = {
+export type MovieReviews = {
   movieId: number;
-  actorName: string;
-  roleName: string;
-  roleDescription: string;
+  reviewerName: string;
+  reviewDate: string;
+  content: string;
+  rating: number;
 };
 // Used to validate the query string og HTTP Get requests
-export type MovieCastMemberQueryParams = {
+export type MovieReviewsQueryParams = {
   movieId: string;
-  actorName?: string;
-  roleName?: string;
 }
+
+

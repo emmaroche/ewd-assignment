@@ -68,40 +68,38 @@
             ],
             "type": "object"
         },
-        "MovieCast": {
+        "Review": {
             "additionalProperties": false,
             "properties": {
-                "actorName": {
-                    "type": "string"
-                },
-                "movieId": {
+                "id": {
                     "type": "number"
                 },
-                "roleDescription": {
+                "reviewerName": {
                     "type": "string"
                 },
-                "roleName": {
+                "reviewDate": {
                     "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
                 }
             },
             "required": [
-                "actorName",
-                "movieId",
-                "roleDescription",
-                "roleName"
+                "id",
+                "reviewerName",
+                "reviewDate",
+                "content",
+                "rating"
             ],
             "type": "object"
         },
-        "MovieCastMemberQueryParams": {
+        "MovieReviewsQueryParams": {
             "additionalProperties": false,
             "properties": {
-                "actorName": {
-                    "type": "string"
-                },
                 "movieId": {
-                    "type": "string"
-                },
-                "roleName": {
                     "type": "string"
                 }
             },
@@ -112,4 +110,3 @@
         }
     }
 }
-
