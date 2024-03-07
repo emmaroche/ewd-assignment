@@ -325,14 +325,16 @@ export const movies : Movie[] = [
 
 export const reviews : MovieReviews[] = [
     {
-        movieId: 1,
+        id: 1,
+        movieId: 1234,
         reviewerName: "John Doe",
         reviewDate: "2021-10-10",
         content: "This is a great movie",
         rating: 10
     },
     {
-        movieId: 2,
+        id: 2,
+        movieId: 2345,
         reviewerName: "Jane Doe",
         reviewDate: "2021-10-10",
         content: "This is a bad movie",

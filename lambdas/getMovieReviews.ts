@@ -1,78 +1,69 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { MovieReviewsQueryParams } from "../shared/types";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  QueryCommand,
-  QueryCommandInput,
-} from "@aws-sdk/lib-dynamodb";
-import Ajv from "ajv";
-import schema from "../shared/types.schema.json";
+import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 
-const ajv = new Ajv();
-const isValidQueryParams = ajv.compile(
-  schema.definitions["MovieReviewsQueryParams"] || {}
-);
- 
-const ddbDocClient = createDocumentClient();
+const ddbDocClient = createDDbDocClient();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     console.log("Event: ", event);
-    const queryParams = event.queryStringParameters;
-    if (!queryParams) {
+    const parameters = event?.pathParameters;
+    const movieId = parameters?.movieId ? parseInt(parameters.movieId) : undefined;
+
+    if (!movieId) {
       return {
-        statusCode: 500,
+        statusCode: 404,
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ message: "Missing query parameters" }),
+        body: JSON.stringify({ Message: "Missing movie Id" }),
       };
     }
-    if (!isValidQueryParams(queryParams)) {
-      return {
-        statusCode: 500,
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          message: `Incorrect type. Must match Query parameters schema`,
-          schema: schema.definitions["MovieCastMemberQueryParams"],
-        }),
-      };
-    }
-    
-    const movieId = parseInt(queryParams.movieId);
-    let commandInput: QueryCommandInput = {
-      TableName: process.env.TABLE_NAME,
-    };
-    
+
     const commandOutput = await ddbDocClient.send(
-      new QueryCommand(commandInput)
-      );
-      
+      new QueryCommand({
+        TableName: process.env.TABLE_NAME,
+        KeyConditionExpression: "movieId = :movieId",
+        ExpressionAttributeValues: {
+          ":movieId": movieId,
+        },
+      })
+    );
+
+    if (!commandOutput.Items || commandOutput.Items.length === 0) {
       return {
-        statusCode: 200,
+        statusCode: 404,
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({
-          data: commandOutput.Items,
-        }),
-      };
-    } catch (error: any) {
-      console.log(JSON.stringify(error));
-      return {
-        statusCode: 500,
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ error }),
+        body: JSON.stringify({ Message: "No reviews found for the specified movie" }),
       };
     }
-  };
-  
-  function createDocumentClient() {
+
+    const body = {
+      data: commandOutput.Items,
+    };
+
+    return {
+      statusCode: 200,
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(body),
+    };
+  } catch (error: any) {
+    console.log(JSON.stringify(error));
+    return {
+      statusCode: 500,
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ error }),
+    };
+  }
+};
+
+function createDDbDocClient() {
     const ddbClient = new DynamoDBClient({ region: process.env.REGION });
     const marshallOptions = {
       convertEmptyValues: true,
@@ -80,8 +71,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       convertClassInstanceToMap: true,
     };
     const unmarshallOptions = {
-    wrapNumbers: false,
-  };
-  const translateConfig = { marshallOptions, unmarshallOptions };
-  return DynamoDBDocumentClient.from(ddbClient, translateConfig);
-}
+      wrapNumbers: false,
+    };
+    const translateConfig = { marshallOptions, unmarshallOptions };
+    return DynamoDBDocumentClient.from(ddbClient, translateConfig);
+  }

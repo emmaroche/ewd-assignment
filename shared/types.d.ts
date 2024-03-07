@@ -15,6 +15,7 @@ export type Movie =   {
   vote_count: number
 }
 export type MovieReviews = {
+  id: number;
   movieId: number;
   reviewerName: string;
   reviewDate: string;

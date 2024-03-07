@@ -74,6 +74,9 @@
                 "id": {
                     "type": "number"
                 },
+                "movieId": {
+                    "type": "number"
+                },
                 "reviewerName": {
                     "type": "string"
                 },
@@ -89,6 +92,7 @@
             },
             "required": [
                 "id",
+                "movieId",
                 "reviewerName",
                 "reviewDate",
                 "content",

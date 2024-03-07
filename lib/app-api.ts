@@ -15,48 +15,15 @@ export class RestAPIStack extends cdk.Stack {
     // Tables 
     const reviewsTable = new dynamodb.Table(this, "MovieReviews", {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      partitionKey: { name: "movieId", type: dynamodb.AttributeType.NUMBER },
+      partitionKey: { name: "id", type: dynamodb.AttributeType.NUMBER },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       tableName: "MovieReviews",
     });
 
-    // Functions 
-    const getReviewByMovieIdFn = new lambdanode.NodejsFunction(
-      this,
-      "GetReviewByMovieIdFn",
-      {
-        architecture: lambda.Architecture.ARM_64,
-        runtime: lambda.Runtime.NODEJS_18_X,
-        entry: `${__dirname}/../lambdas/getReviewByMovieId.ts`,
-        timeout: cdk.Duration.seconds(10),
-        memorySize: 128,
-        environment: {
-          TABLE_NAME: reviewsTable.tableName,
-          REGION: 'eu-west-1',
-        },
-      }
-    );
-
-    const getAllReviewsFn = new lambdanode.NodejsFunction(
-      this,
-      "GetAllReviewsFn",
-      {
-        architecture: lambda.Architecture.ARM_64,
-        runtime: lambda.Runtime.NODEJS_18_X,
-        entry: `${__dirname}/../lambdas/getAllReviews.ts`,
-        timeout: cdk.Duration.seconds(10),
-        memorySize: 128,
-        environment: {
-          TABLE_NAME: reviewsTable.tableName,
-          REGION: 'eu-west-1',
-        },
-      }
-    );
-
-    const newReviewFn = new lambdanode.NodejsFunction(this, "AddRevFn", {
+    const addMovieReviewFn = new lambdanode.NodejsFunction(this, "AddMovieReviewFn", {
       architecture: lambda.Architecture.ARM_64,
       runtime: lambda.Runtime.NODEJS_16_X,
-      entry: `${__dirname}/../lambdas/addReview.ts`,
+      entry: `${__dirname}/../lambdas/addMovieReview.ts`,
       timeout: cdk.Duration.seconds(10),
       memorySize: 128,
       environment: {
@@ -65,26 +32,10 @@ export class RestAPIStack extends cdk.Stack {
       },
     });
 
-    const getMovieReviewsFn = new lambdanode.NodejsFunction(
-      this,
-      "GetReviewFn",
-      {
-        architecture: lambda.Architecture.ARM_64,
-        runtime: lambda.Runtime.NODEJS_16_X,
-        entry: `${__dirname}/../lambdas/getMovieReviews.ts`,
-        timeout: cdk.Duration.seconds(10),
-        memorySize: 128,
-        environment: {
-          TABLE_NAME: reviewsTable.tableName,
-          REGION: "eu-west-1",
-        },
-      }
-    );
-
-    const deleteReviewFn = new lambdanode.NodejsFunction(this, "DeleteReviewFn", {
+    const getMovieReviewsFn = new lambdanode.NodejsFunction(this, "GetMovieReviewsFn", {
       architecture: lambda.Architecture.ARM_64,
       runtime: lambda.Runtime.NODEJS_16_X,
-      entry: `${__dirname}/../lambdas/deleteReview.ts`, 
+      entry: `${__dirname}/../lambdas/getMovieReviews.ts`,
       timeout: cdk.Duration.seconds(10),
       memorySize: 128,
       environment: {
@@ -92,7 +43,7 @@ export class RestAPIStack extends cdk.Stack {
         REGION: "eu-west-1",
       },
     });
-    
+
     new custom.AwsCustomResource(this, "moviesddbInitData", {
       onCreate: {
         service: "DynamoDB",
@@ -111,12 +62,10 @@ export class RestAPIStack extends cdk.Stack {
 
 
     // Permissions 
-    reviewsTable.grantReadData(getReviewByMovieIdFn)
-    reviewsTable.grantReadData(getAllReviewsFn)
+
     reviewsTable.grantReadData(getMovieReviewsFn);
-    reviewsTable.grantReadWriteData(newReviewFn)
-    reviewsTable.grantReadWriteData(deleteReviewFn);
-    
+    reviewsTable.grantReadWriteData(addMovieReviewFn);
+
     // REST API 
     const api = new apig.RestApi(this, "RestAPI", {
       description: "demo api",
@@ -131,33 +80,20 @@ export class RestAPIStack extends cdk.Stack {
       },
     });
 
-    const reviewsEndpoint = api.root.addResource("movies");
-    reviewsEndpoint.addMethod(
-      "GET",
-      new apig.LambdaIntegration(getAllReviewsFn, { proxy: true })
-    );
+    const moviesEndpoint = api.root.addResource("movies");
+    const movieEndpoint = moviesEndpoint.addResource("{movieId}");
+    const movieReviewsEndpointAdd = moviesEndpoint.addResource("reviews");
 
-    const reviewEndpoint = reviewsEndpoint.addResource("{movieId}");
-    reviewEndpoint.addMethod(
-      "GET",
-      new apig.LambdaIntegration(getReviewByMovieIdFn, { proxy: true })
-    );
-
-    reviewsEndpoint.addMethod(
+    movieReviewsEndpointAdd.addMethod(
       "POST",
-      new apig.LambdaIntegration(newReviewFn, { proxy: true })
+      new apig.LambdaIntegration(addMovieReviewFn, { proxy: true })
     );
 
-    reviewsEndpoint.addMethod(
-      "DELETE",
-      new apig.LambdaIntegration(deleteReviewFn, { proxy: true })
-    );
 
-    const movieReviewEndpoint = reviewsEndpoint.addResource("reviews");
-    movieReviewEndpoint.addMethod(
-        "GET",
-        new apig.LambdaIntegration(getMovieReviewsFn, { proxy: true })
+    const movieReviewsEndpoint = movieEndpoint.addResource("reviews");
+    movieReviewsEndpoint.addMethod(
+      "GET",
+      new apig.LambdaIntegration(getMovieReviewsFn, { proxy: true })
     );
-
   }
 }
