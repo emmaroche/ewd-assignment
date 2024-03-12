@@ -71,9 +71,6 @@
         "Review": {
             "additionalProperties": false,
             "properties": {
-                "id": {
-                    "type": "number"
-                },
                 "movieId": {
                     "type": "number"
                 },
@@ -91,7 +88,6 @@
                 }
             },
             "required": [
-                "id",
                 "movieId",
                 "reviewerName",
                 "reviewDate",
@@ -103,14 +99,20 @@
         "MovieReviewsQueryParams": {
             "additionalProperties": false,
             "properties": {
-                "movieId": {
-                    "type": "string"
-                }
+              "movieId": {
+                "type": "string"
+              },
+              "reviewerName": {
+                "type": "string"
+            },
+              "rating": {
+                "type": "number"
+              }
             },
             "required": [
-                "movieId"
+              "movieId"
             ],
             "type": "object"
-        }
+          }
     }
 }

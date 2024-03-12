@@ -15,7 +15,7 @@ export type Movie =   {
   vote_count: number
 }
 export type MovieReviews = {
-  id: number;
+  // id: number;
   movieId: number;
   reviewerName: string;
   reviewDate: string;
@@ -25,6 +25,8 @@ export type MovieReviews = {
 // Used to validate the query string og HTTP Get requests
 export type MovieReviewsQueryParams = {
   movieId: string;
+  reviewerName?: string;
+  rating?: number;
 }
 
 

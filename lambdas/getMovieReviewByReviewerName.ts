@@ -9,38 +9,36 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     console.log("Event: ", event);
     const parameters = event?.pathParameters;
     const movieId = parameters?.movieId ? parseInt(parameters.movieId) : undefined;
-    const minRating = event?.queryStringParameters?.minRating ? parseFloat(event.queryStringParameters.minRating) : undefined;
+    const reviewerName = parameters?.reviewerName;
 
-    if (!movieId) {
+    if (!movieId || !reviewerName) {
       return {
         statusCode: 404,
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ Message: "Missing movie Id" }),
+        body: JSON.stringify({ Message: "Missing movie Id or reviewer name" }),
       };
     }
 
     const commandOutput = await ddbDocClient.send(
-      new QueryCommand({
-        TableName: process.env.TABLE_NAME,
-        KeyConditionExpression: "movieId = :movieId",
-        ExpressionAttributeValues: {
-          ":movieId": movieId,
-          ...(minRating !== undefined && { ":minRating": minRating }),
-        },
-         //Reference for this code: https://medium.com/plus-marketing/how-to-use-spread-and-rest-in-javascript-4729ae185317
-        ...(minRating !== undefined && { FilterExpression: "rating > :minRating" }),
-      })
-    );
-
+        new QueryCommand({
+          TableName: process.env.TABLE_NAME,
+          KeyConditionExpression: "movieId = :m AND begins_with(reviewerName, :r)",
+          ExpressionAttributeValues: {
+            ":m": movieId,
+            ":r": reviewerName,
+          },
+        })
+      );
+  
     if (!commandOutput.Items || commandOutput.Items.length === 0) {
       return {
         statusCode: 404,
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ Message: "No reviews found for the specified movie" }),
+        body: JSON.stringify({ Message: "No reviews found for the specified movie and reviewer" }),
       };
     }
 
@@ -80,4 +78,3 @@ function createDDbDocClient() {
   const translateConfig = { marshallOptions, unmarshallOptions };
   return DynamoDBDocumentClient.from(ddbClient, translateConfig);
 }
-
