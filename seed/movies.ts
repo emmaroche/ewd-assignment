@@ -329,7 +329,7 @@ export const reviews : MovieReviews[] = [
         reviewerName: "John Doe",
         reviewDate: "2021-10-10",
         content: "This is a great movie",
-        rating: 10
+        rating: 5
     },
     {
         movieId: 2345,

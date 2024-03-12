@@ -20,7 +20,7 @@ export type MovieReviews = {
   reviewerName: string;
   reviewDate: string;
   content: string;
-  rating: number;
+  rating: 1 | 2 | 3 | 4 | 5;
 };
 // Used to validate the query string og HTTP Get requests
 export type MovieReviewsQueryParams = {
