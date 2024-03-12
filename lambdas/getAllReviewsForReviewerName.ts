@@ -1,56 +1,59 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
-
-import Ajv from "ajv";
-import schema from "../shared/types.schema.json";
-
-const ajv = new Ajv();
-const isValidBodyParams = ajv.compile(schema.definitions["Review"] || {});
+import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddbDocClient = createDDbDocClient();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
+    // Print Event
     console.log("Event: ", event);
-    const body = event.body ? JSON.parse(event.body) : undefined;
 
-    if (!body) {
+    const parameters = event?.pathParameters;
+    const reviewerName = parameters?.reviewerName;
+
+    if (!reviewerName) {
       return {
-        statusCode: 500,
+        statusCode: 404,
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ message: "Missing request body" }),
+        body: JSON.stringify({ Message: "Missing reviewer name" }),
       };
     }
 
-    if (!isValidBodyParams(body)) {
+    const commandOutput = await ddbDocClient.send(
+        new ScanCommand({
+          TableName: process.env.TABLE_NAME,
+          FilterExpression: "begins_with(reviewerName, :r)",
+          ExpressionAttributeValues: {
+            ":r": reviewerName,
+          },
+        })
+      );
+      
+
+    if (!commandOutput.Items || commandOutput.Items.length === 0) {
       return {
-        statusCode: 500,
+        statusCode: 404,
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({
-          message: `Incorrect type. Must match Review schema`,
-          schema: schema.definitions["Review"],
-        }),
+        body: JSON.stringify({ Message: "No reviews found for the specified reviewer" }),
       };
     }
 
-    const commandOutput = await ddbDocClient.send( 
-      new PutCommand({
-        TableName: process.env.TABLE_NAME,
-        Item: body,
-      })
-    );
+    const body = {
+      data: commandOutput.Items,
+    };
 
+    // Return Response
     return {
-      statusCode: 201,
+      statusCode: 200,
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify({ message: "Review added" }),
+      body: JSON.stringify(body),
     };
   } catch (error: any) {
     console.log(JSON.stringify(error));
