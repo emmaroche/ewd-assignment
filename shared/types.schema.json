@@ -105,8 +105,8 @@
               "reviewerName": {
                 "type": "string"
             },
-              "rating": {
-                "type": "number"
+              "reviewDate": {
+                "type": "string"
               }
             },
             "required": [
