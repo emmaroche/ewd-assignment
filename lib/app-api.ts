@@ -73,7 +73,19 @@ export class RestAPIStack extends cdk.Stack {
         REGION: "eu-west-1",
       },
     });
-    
+
+    const updateMovieReviewFn = new lambdanode.NodejsFunction(this, "UpdateMovieReviewFn", {
+      architecture: lambda.Architecture.ARM_64,
+      runtime: lambda.Runtime.NODEJS_16_X,
+      entry: `${__dirname}/../lambdas/updateMovieReview.ts`,
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 128,
+      environment: {
+        TABLE_NAME: reviewsTable.tableName,
+        REGION: "eu-west-1",
+      },
+    });
+
     new custom.AwsCustomResource(this, "moviesddbInitData", {
       onCreate: {
         service: "DynamoDB",
@@ -95,6 +107,7 @@ export class RestAPIStack extends cdk.Stack {
     reviewsTable.grantReadWriteData(addMovieReviewFn);
     reviewsTable.grantReadData(getMovieReviewByReviewerNameAndYearFn);
     reviewsTable.grantReadData(getAllMovieReviewsForReviewerNameFn);
+    reviewsTable.grantReadWriteData(updateMovieReviewFn);
 
     // REST API 
     const api = new apig.RestApi(this, "RestAPI", {
@@ -112,7 +125,7 @@ export class RestAPIStack extends cdk.Stack {
 
     const moviesEndpoint2 = api.root.addResource("reviews");
     const movieReviewsByReviewerNameEndpoint = moviesEndpoint2.addResource("{reviewerName}");
-    
+
     //GET /reviews/{reviewerName} endpoint
     movieReviewsByReviewerNameEndpoint.addMethod(
       "GET",
@@ -142,6 +155,14 @@ export class RestAPIStack extends cdk.Stack {
       "GET",
       new apig.LambdaIntegration(getMovieReviewsFn, { proxy: true })
     );
+
+    const movieReviewUpdateEndpoint = movieReviewsEndpoint.addResource("{reviewerName}");
+
+    movieReviewUpdateEndpoint.addMethod(
+      "PUT",
+      new apig.LambdaIntegration(updateMovieReviewFn, { proxy: true })
+    );
+
 
   }
 }

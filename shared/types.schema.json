@@ -99,20 +99,38 @@
         "MovieReviewsQueryParams": {
             "additionalProperties": false,
             "properties": {
-              "movieId": {
-                "type": "string"
-              },
-              "reviewerName": {
-                "type": "string"
-            },
-              "reviewDate": {
-                "type": "string"
-              }
+                "movieId": {
+                    "type": "string"
+                },
+                "reviewerName": {
+                    "type": "string"
+                },
+                "reviewDate": {
+                    "type": "string"
+                }
             },
             "required": [
-              "movieId"
+                "movieId"
             ],
             "type": "object"
-          }
+        },
+        "UpdateMovieReviewsQueryParams": {
+            "additionalProperties": false,
+            "properties": {
+                "movieId": {
+                    "type": "string"
+                },
+                "reviewerName": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "movieId"
+            ],
+            "type": "object"
+        }
     }
 }
