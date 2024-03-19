@@ -54,7 +54,6 @@ export class AppApi extends Construct {
     );
 
     // Functions
-
     const addMovieReviewFn = new lambdanode.NodejsFunction(this, "AddMovieReviewFn", {
       architecture: lambda.Architecture.ARM_64,
       runtime: lambda.Runtime.NODEJS_16_X,
@@ -153,14 +152,14 @@ export class AppApi extends Construct {
     const moviesEndpoint2 = appApi.root.addResource("reviews");
     const movieReviewsByReviewerNameEndpoint = moviesEndpoint2.addResource("{reviewerName}");
 
-    //GET /reviews/{reviewerName} endpoint
+    // GET /reviews/{reviewerName} endpoint
     movieReviewsByReviewerNameEndpoint.addMethod(
       "GET",
       new apig.LambdaIntegration(getAllMovieReviewsForReviewerNameFn, { proxy: true })
     );
 
     const reviewsNameMovieEndpoint = movieReviewsByReviewerNameEndpoint.addResource("{movieId}");
-    const reviewsNameMovieTranslateEndpoint = reviewsNameMovieEndpoint.addResource("translation"); 
+    const reviewsNameMovieTranslateEndpoint = reviewsNameMovieEndpoint.addResource("translation");
 
     // GET reviews/John/1234/translation?language=code endpoint
     reviewsNameMovieTranslateEndpoint.addMethod(
@@ -197,7 +196,8 @@ export class AppApi extends Construct {
     );
 
     const movieReviewUpdateEndpoint = movieReviewsEndpoint.addResource("{reviewerName}");
-
+    
+    // PUT /movies/{movieId}/reviews/{reviewerName}
     movieReviewUpdateEndpoint.addMethod(
       "PUT",
       new apig.LambdaIntegration(updateMovieReviewFn, { proxy: true }),

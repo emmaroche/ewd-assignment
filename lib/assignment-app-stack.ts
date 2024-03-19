@@ -27,7 +27,7 @@ export class AssignmentAppStack extends cdk.Stack {
 
     const userPoolClientId = appClient.userPoolClientId;
 
-    // Tables 
+    // Table
     const reviewsTable = new dynamodb.Table(this, "MovieReviews", {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: { name: "movieId", type: dynamodb.AttributeType.NUMBER },
@@ -66,8 +66,8 @@ export class AssignmentAppStack extends cdk.Stack {
       userPoolId: userPoolId,
       userPoolClientId: userPoolClientId,
       tableName: reviewsTable,
-    } );
+    });
 
-  } 
+  }
 
 }

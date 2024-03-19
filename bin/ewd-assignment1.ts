@@ -5,6 +5,6 @@ import { AssignmentAppStack } from "../lib/assignment-app-stack";
 
 const app = new cdk.App();
 
-new AssignmentAppStack(app, "AuthAPIStack", {
-   
-  });
+new AssignmentAppStack(app, "AssignmentAppStack", {
+
+});

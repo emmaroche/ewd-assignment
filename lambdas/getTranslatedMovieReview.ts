@@ -30,13 +30,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
         if (!reviewerName) {
             return {
-              statusCode: 404,
-              headers: {
-                "content-type": "application/json",
-              },
-              body: JSON.stringify({ Message: "Missing reviewer name" }),
+                statusCode: 404,
+                headers: {
+                    "content-type": "application/json",
+                },
+                body: JSON.stringify({ Message: "Missing reviewer name" }),
             };
-          }
+        }
 
         if (!language) {
             return {
@@ -58,7 +58,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
                 },
             })
         );
-        
+
         if (!commandOutput.Items || commandOutput.Items.length === 0) {
             return {
                 statusCode: 404,

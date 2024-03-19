@@ -29,7 +29,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           ":movieId": movieId,
           ...(minRating !== undefined && { ":minRating": minRating }),
         },
-         //Reference for this code: https://medium.com/plus-marketing/how-to-use-spread-and-rest-in-javascript-4729ae185317
+        //Reference for this code: https://medium.com/plus-marketing/how-to-use-spread-and-rest-in-javascript-4729ae185317
         ...(minRating !== undefined && { FilterExpression: "rating > :minRating" }),
       })
     );

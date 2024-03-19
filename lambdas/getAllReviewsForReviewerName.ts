@@ -21,15 +21,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     }
 
     const commandOutput = await ddbDocClient.send(
-        new ScanCommand({
-          TableName: process.env.TABLE_NAME,
-          FilterExpression: "begins_with(reviewerName, :r)",
-          ExpressionAttributeValues: {
-            ":r": reviewerName,
-          },
-        })
-      );
-      
+      new ScanCommand({
+        TableName: process.env.TABLE_NAME,
+        FilterExpression: "begins_with(reviewerName, :r)",
+        ExpressionAttributeValues: {
+          ":r": reviewerName,
+        },
+      })
+    );
+
     if (!commandOutput.Items || commandOutput.Items.length === 0) {
       return {
         statusCode: 404,
