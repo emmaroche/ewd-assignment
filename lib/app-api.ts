@@ -4,27 +4,57 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as custom from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
-import { generateBatch } from "../shared/util";
-import { reviews } from "../seed/movieReviews";
 import * as apig from "aws-cdk-lib/aws-apigateway";
+import * as node from "aws-cdk-lib/aws-lambda-nodejs";
+import { Table } from "aws-cdk-lib/aws-dynamodb";
 
-export class RestAPIStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
+type AppApiProps = {
+  userPoolId: string;
+  userPoolClientId: string;
+  tableName: Table;
+};
 
-    // Tables 
-    const reviewsTable = new dynamodb.Table(this, "MovieReviews", {
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      partitionKey: { name: "movieId", type: dynamodb.AttributeType.NUMBER },
-      sortKey: { name: "reviewerName", type: dynamodb.AttributeType.STRING },
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      tableName: "MovieReviews",
+export class AppApi extends Construct {
+  constructor(scope: Construct, id: string, props: AppApiProps) {
+    super(scope, id);
+
+    const appApi = new apig.RestApi(this, "AppApi", {
+      description: "Assignment 1 RestApi App",
+      endpointTypes: [apig.EndpointType.REGIONAL],
+      defaultCorsPreflightOptions: {
+        allowOrigins: apig.Cors.ALL_ORIGINS,
+      },
     });
 
-    reviewsTable.addLocalSecondaryIndex({
-      indexName: "reviewDateIx",
-      sortKey: { name: "reviewDate", type: dynamodb.AttributeType.STRING },
+    const appCommonFnProps = {
+      architecture: lambda.Architecture.ARM_64,
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 128,
+      runtime: lambda.Runtime.NODEJS_16_X,
+      handler: "handler",
+      environment: {
+        USER_POOL_ID: props.userPoolId,
+        CLIENT_ID: props.userPoolClientId,
+        REGION: cdk.Aws.REGION,
+      },
+    };
+
+    const authorizerFn = new node.NodejsFunction(this, "AuthorizerFn", {
+      ...appCommonFnProps,
+      entry: "./lambdas/auth/authorizer.ts",
     });
+
+    const requestAuthorizer = new apig.RequestAuthorizer(
+      this,
+      "RequestAuthorizer",
+      {
+        identitySources: [apig.IdentitySource.header("cookie")],
+        handler: authorizerFn,
+        resultsCacheTtl: cdk.Duration.minutes(0),
+      }
+    );
+
+    // Functions
 
     const addMovieReviewFn = new lambdanode.NodejsFunction(this, "AddMovieReviewFn", {
       architecture: lambda.Architecture.ARM_64,
@@ -33,7 +63,7 @@ export class RestAPIStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(10),
       memorySize: 128,
       environment: {
-        TABLE_NAME: reviewsTable.tableName,
+        TABLE_NAME: props.tableName.tableName,
         REGION: "eu-west-1",
       },
     });
@@ -45,7 +75,7 @@ export class RestAPIStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(10),
       memorySize: 128,
       environment: {
-        TABLE_NAME: reviewsTable.tableName,
+        TABLE_NAME: props.tableName.tableName,
         REGION: "eu-west-1",
       },
     });
@@ -57,7 +87,7 @@ export class RestAPIStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(10),
       memorySize: 128,
       environment: {
-        TABLE_NAME: reviewsTable.tableName,
+        TABLE_NAME: props.tableName.tableName,
         REGION: "eu-west-1",
       },
     });
@@ -69,7 +99,7 @@ export class RestAPIStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(10),
       memorySize: 128,
       environment: {
-        TABLE_NAME: reviewsTable.tableName,
+        TABLE_NAME: props.tableName.tableName,
         REGION: "eu-west-1",
       },
     });
@@ -81,49 +111,22 @@ export class RestAPIStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(10),
       memorySize: 128,
       environment: {
-        TABLE_NAME: reviewsTable.tableName,
+        TABLE_NAME: props.tableName.tableName,
         REGION: "eu-west-1",
       },
     });
 
-    new custom.AwsCustomResource(this, "moviesddbInitData", {
-      onCreate: {
-        service: "DynamoDB",
-        action: "batchWriteItem",
-        parameters: {
-          RequestItems: {
-            [reviewsTable.tableName]: generateBatch(reviews),
-          },
-        },
-        physicalResourceId: custom.PhysicalResourceId.of("moviesddbInitData"), //.of(Date.now().toString()),
-      },
-      policy: custom.AwsCustomResourcePolicy.fromSdkCalls({
-        resources: [reviewsTable.tableArn],
-      }),
-    });
-
     // Permissions 
-    reviewsTable.grantReadData(getMovieReviewsFn);
-    reviewsTable.grantReadWriteData(addMovieReviewFn);
-    reviewsTable.grantReadData(getMovieReviewByReviewerNameAndYearFn);
-    reviewsTable.grantReadData(getAllMovieReviewsForReviewerNameFn);
-    reviewsTable.grantReadWriteData(updateMovieReviewFn);
+    props.tableName.grantReadData(getMovieReviewsFn);
+    props.tableName.grantReadWriteData(addMovieReviewFn);
+    props.tableName.grantReadData(getMovieReviewByReviewerNameAndYearFn);
+    props.tableName.grantReadData(getAllMovieReviewsForReviewerNameFn);
+    props.tableName.grantReadWriteData(updateMovieReviewFn);
 
-    // REST API 
-    const api = new apig.RestApi(this, "RestAPI", {
-      description: "demo api",
-      deployOptions: {
-        stageName: "dev",
-      },
-      defaultCorsPreflightOptions: {
-        allowHeaders: ["Content-Type", "X-Amz-Date"],
-        allowMethods: ["OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE"],
-        allowCredentials: true,
-        allowOrigins: ["*"],
-      },
-    });
+    // Endpoints
 
-    const moviesEndpoint2 = api.root.addResource("reviews");
+
+    const moviesEndpoint2 = appApi.root.addResource("reviews");
     const movieReviewsByReviewerNameEndpoint = moviesEndpoint2.addResource("{reviewerName}");
 
     //GET /reviews/{reviewerName} endpoint
@@ -132,7 +135,7 @@ export class RestAPIStack extends cdk.Stack {
       new apig.LambdaIntegration(getAllMovieReviewsForReviewerNameFn, { proxy: true })
     );
 
-    const moviesEndpoint = api.root.addResource("movies");
+    const moviesEndpoint = appApi.root.addResource("movies");
     const movieReviewsEndpointAdd = moviesEndpoint.addResource("reviews");
 
     // POST /movies/reviews endpoint
@@ -162,7 +165,6 @@ export class RestAPIStack extends cdk.Stack {
       "PUT",
       new apig.LambdaIntegration(updateMovieReviewFn, { proxy: true })
     );
-
 
   }
 }
