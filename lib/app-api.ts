@@ -1,12 +1,11 @@
 import * as cdk from "aws-cdk-lib";
 import * as lambdanode from "aws-cdk-lib/aws-lambda-nodejs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import * as custom from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
 import * as apig from "aws-cdk-lib/aws-apigateway";
 import * as node from "aws-cdk-lib/aws-lambda-nodejs";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
+import { Role } from "aws-cdk-lib/aws-iam";
 
 type AppApiProps = {
   userPoolId: string;
@@ -116,16 +115,41 @@ export class AppApi extends Construct {
       },
     });
 
+    const translateRole = cdk.aws_iam.Role.fromRoleArn(
+      this,
+      "translate",
+      "arn:aws:iam::533267074955:role/translate",
+      {
+        mutable: true,
+      }
+    );
+
+    const getTranslatedMovieReviewFn = new lambdanode.NodejsFunction(
+      this,
+      "GetTranslatedMovieReviewFn",
+      {
+        architecture: lambda.Architecture.ARM_64,
+        runtime: lambda.Runtime.NODEJS_16_X,
+        entry: `${__dirname}/../lambdas/getTranslatedMovieReview.ts`,
+        timeout: cdk.Duration.seconds(10),
+        memorySize: 128,
+        environment: {
+          TABLE_NAME: props.tableName.tableName,
+          REGION: "eu-west-1",
+        },
+        role: translateRole,
+      }
+    );
+
     // Permissions 
     props.tableName.grantReadData(getMovieReviewsFn);
     props.tableName.grantReadWriteData(addMovieReviewFn);
     props.tableName.grantReadData(getMovieReviewByReviewerNameAndYearFn);
     props.tableName.grantReadData(getAllMovieReviewsForReviewerNameFn);
     props.tableName.grantReadWriteData(updateMovieReviewFn);
+    props.tableName.grantReadData(getTranslatedMovieReviewFn);
 
     // Endpoints
-
-
     const moviesEndpoint2 = appApi.root.addResource("reviews");
     const movieReviewsByReviewerNameEndpoint = moviesEndpoint2.addResource("{reviewerName}");
 
@@ -133,6 +157,15 @@ export class AppApi extends Construct {
     movieReviewsByReviewerNameEndpoint.addMethod(
       "GET",
       new apig.LambdaIntegration(getAllMovieReviewsForReviewerNameFn, { proxy: true })
+    );
+
+    const reviewsNameMovieEndpoint = movieReviewsByReviewerNameEndpoint.addResource("{movieId}");
+    const reviewsNameMovieTranslateEndpoint = reviewsNameMovieEndpoint.addResource("translation"); 
+
+    // GET reviews/John/1234/translation?language=code endpoint
+    reviewsNameMovieTranslateEndpoint.addMethod(
+      "GET",
+      new apig.LambdaIntegration(getTranslatedMovieReviewFn, { proxy: true })
     );
 
     const moviesEndpoint = appApi.root.addResource("movies");

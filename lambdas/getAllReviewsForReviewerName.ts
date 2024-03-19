@@ -6,9 +6,7 @@ const ddbDocClient = createDDbDocClient();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
-    // Print Event
     console.log("Event: ", event);
-
     const parameters = event?.pathParameters;
     const reviewerName = parameters?.reviewerName;
 
@@ -32,7 +30,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         })
       );
       
-
     if (!commandOutput.Items || commandOutput.Items.length === 0) {
       return {
         statusCode: 404,
@@ -47,7 +44,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       data: commandOutput.Items,
     };
 
-    // Return Response
     return {
       statusCode: 200,
       headers: {
