@@ -141,7 +141,11 @@ export class AppApi extends Construct {
     // POST /movies/reviews endpoint
     movieReviewsEndpointAdd.addMethod(
       "POST",
-      new apig.LambdaIntegration(addMovieReviewFn, { proxy: true })
+      new apig.LambdaIntegration(addMovieReviewFn, { proxy: true }),
+      {
+        authorizer: requestAuthorizer,
+        authorizationType: apig.AuthorizationType.CUSTOM,
+      }
     );
 
     // GET reviewerName & year endpoints
@@ -163,7 +167,11 @@ export class AppApi extends Construct {
 
     movieReviewUpdateEndpoint.addMethod(
       "PUT",
-      new apig.LambdaIntegration(updateMovieReviewFn, { proxy: true })
+      new apig.LambdaIntegration(updateMovieReviewFn, { proxy: true }),
+      {
+        authorizer: requestAuthorizer,
+        authorizationType: apig.AuthorizationType.CUSTOM,
+      }
     );
 
   }
