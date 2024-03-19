@@ -5,7 +5,7 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as custom from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
 import { generateBatch } from "../shared/util";
-import { movies, reviews } from "../seed/movies";
+import { reviews } from "../seed/movieReviews";
 import * as apig from "aws-cdk-lib/aws-apigateway";
 
 export class RestAPIStack extends cdk.Stack {
