@@ -1,8 +1,8 @@
 {
-  "name": "simple-app",
+  "name": "ewd-assignment1",
   "version": "0.1.0",
   "bin": {
-    "simple-app": "bin/simple-app.js"
+    "ewd-assignment1": "bin/ewd-assignment1.js"
   },
   "scripts": {
     "build": "tsc",
