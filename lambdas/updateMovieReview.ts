@@ -14,7 +14,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     console.log("Event: ", event);
     const body = event.body ? JSON.parse(event.body) : undefined;
-    const { movieId = "", reviewerName: encodedReviewerName = "" } = event.pathParameters || {};
+    const parameters = event?.pathParameters;
+    const movieId = parameters?.movieId ? parseInt(parameters.movieId) : undefined;
+     // This is to help with applying scacing between reviewers first and last name in request e.g. Jane%20Doe: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent
+    const reviewerName = parameters?.reviewerName ? decodeURI(parameters?.reviewerName): undefined;
 
     if (!body) {
       return {
@@ -39,15 +42,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       };
     }
 
-    // This is to help with applying scacing between reviewers first and last name in request e.g. Jane%20Doe: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent
-    const reviewerName = decodeURIComponent(encodedReviewerName);
-
     // Reference to help with code: https://stackoverflow.com/questions/66591418/aws-nodejs-sdk-v3-dynamodb-updateitem-typeerror-cannot-read-property-0-of-u
     const commandOutput = await ddbDocClient.send(
       new UpdateCommand({
         TableName: process.env.TABLE_NAME,
         Key: {
-          movieId: parseInt(movieId),
+          movieId: movieId,
           reviewerName: reviewerName,
         },
         UpdateExpression: "SET content = :content",

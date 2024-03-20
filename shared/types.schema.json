@@ -50,18 +50,12 @@
         "UpdateMovieReviewsQueryParams": {
             "additionalProperties": false,
             "properties": {
-                "movieId": {
-                    "type": "string"
-                },
-                "reviewerName": {
-                    "type": "string"
-                },
                 "content": {
                     "type": "string"
                 }
             },
             "required": [
-                "movieId"
+                "content"
             ],
             "type": "object"
         },

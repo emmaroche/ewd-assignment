@@ -76,7 +76,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     } else if ("reviewerName" in queryParams) {
       commandInput = {
         ...commandInput,
-        KeyConditionExpression: "movieId = :m and begins_with(reviewerName, :r) ",
+        KeyConditionExpression: "movieId = :m and reviewerName = :r ",
         ExpressionAttributeValues: {
           ":m": movieId,
           ":r": queryParams.reviewerName,

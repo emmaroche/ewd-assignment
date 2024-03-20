@@ -8,7 +8,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     console.log("Event: ", event);
     const parameters = event?.pathParameters;
-    const reviewerName = parameters?.reviewerName;
+    const reviewerName = parameters?.reviewerName ? decodeURI(parameters?.reviewerName): undefined;
 
     if (!reviewerName) {
       return {
@@ -23,7 +23,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const commandOutput = await ddbDocClient.send(
       new ScanCommand({
         TableName: process.env.TABLE_NAME,
-        FilterExpression: "begins_with(reviewerName, :r)",
+        FilterExpression: "reviewerName = :r",
         ExpressionAttributeValues: {
           ":r": reviewerName,
         },

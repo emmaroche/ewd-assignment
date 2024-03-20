@@ -16,7 +16,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         const language = queryParams?.language ? queryParams.language : undefined;
         const parameters = event?.pathParameters;
         const movieId = parameters?.movieId ? parseInt(parameters.movieId) : undefined;
-        const reviewerName = parameters?.reviewerName;
+        const reviewerName = parameters?.reviewerName ? decodeURI(parameters?.reviewerName): undefined;
 
         if (!movieId) {
             return {
@@ -51,7 +51,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         const commandOutput = await ddbDocClient.send(
             new ScanCommand({
                 TableName: process.env.TABLE_NAME,
-                FilterExpression: "movieId = :m and begins_with(reviewerName, :r)",
+                FilterExpression: "movieId = :m and reviewerName = :r",
                 ExpressionAttributeValues: {
                     ":m": movieId,
                     ":r": reviewerName,

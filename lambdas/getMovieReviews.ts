@@ -24,9 +24,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const commandOutput = await ddbDocClient.send(
       new QueryCommand({
         TableName: process.env.TABLE_NAME,
-        KeyConditionExpression: "movieId = :movieId",
+        KeyConditionExpression: "movieId = :m",
         ExpressionAttributeValues: {
-          ":movieId": movieId,
+          ":m": movieId,
           ...(minRating !== undefined && { ":minRating": minRating }),
         },
         //Reference for this code: https://medium.com/plus-marketing/how-to-use-spread-and-rest-in-javascript-4729ae185317
