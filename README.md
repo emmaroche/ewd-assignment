@@ -43,11 +43,11 @@ I did some independent learning and research for:
 
 + The PUT /movies/{movieId}/reviews/{reviewerName} endpoint (file name: updateMovieReview.ts) 
 
-  **Note:** I used some existing code from the labs but I also needed to look at some online resources to help me get this to work successfully.
+  **Note:** I used some existing code from the labs but I also looked at some online resources to help me get this to work successfully.
 
 + The GET /movies/{movieId}/reviews?minRating=n endpoint (file name: getMovieReviews.ts)
 
-  **Note:**: I used some existing code from the labs but, similar to the last point, I also needed to look at some online resources to help me get this to work successfully.
+  **Note:**: I used some existing code from the labs but, similar to the last point, I also looked at some online resources to help me get this to work successfully.
 
 + The GET /reviews/{reviewerName}/{movieId}/translation?language=code (file name: getTranslatedMovieReview.ts)
 
