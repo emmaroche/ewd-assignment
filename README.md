@@ -2,7 +2,7 @@
 
 __Name:__ Emma Roche
 
-__Video demonstration:__ To be completed
+__Video demonstration:__ [Demo Link](https://youtu.be/H9eK2kiACVw)
 
 This repository contains an implementation of a serverless REST API for the AWS platform. The CDK framework is used to provision its infrastructure. The API's domain context is movie reviews.
 
