@@ -39,11 +39,11 @@ Below is a screenshot from the AWS management console (Cognito User Pools) showi
 
 ![](./images/Auth.png)
 
-### Authorization:
+### Authorization
 
 Only authenticated users are allowed to perform POST and PUT requests, whereas GET requests are publicly accessible.
 
-### Amazon Translate:
+### Amazon Translate
 
 The reviews content text can be translated to a different language with Amazon Translate via the GET /reviews/{reviewerName}/{movieId}/translation?language=code request.
 
