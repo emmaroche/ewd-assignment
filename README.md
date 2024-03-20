@@ -49,7 +49,7 @@ I did some independent learning and research for:
 
   **Note:**: I used some existing code from the labs but, similar to the last point, I also looked at some online resources to help me get this to work successfully.
 
-+ The GET /reviews/{reviewerName}/{movieId}/translation?language=code (file name: getTranslatedMovieReview.ts)
++ The GET /reviews/{reviewerName}/{movieId}/translation?language=code (file name: getTranslatedMovieReview.ts and app-api.ts)
 
    **Note:** I first tried to follow a YouTube video that was linked to us but it did not work successfully within the project. So for the most part, I reused a lot of the lab code along with some new translate code added from online resources that I looked at. However, after running into some role errors, I realised I had to add a new IAM role with the AWSLambdaBasicExecutionRole and TranslateReadOnly policies included called 'translate' and link it to the getTranslatedMovieReviewFn function.
 

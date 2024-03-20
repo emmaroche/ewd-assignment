@@ -16,7 +16,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const body = event.body ? JSON.parse(event.body) : undefined;
     const parameters = event?.pathParameters;
     const movieId = parameters?.movieId ? parseInt(parameters.movieId) : undefined;
-     // This is to help with applying scacing between reviewers first and last name in request e.g. Jane%20Doe: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent
+     // This source was used to help with applying correct scacing between reviewers first and last name in request e.g. Jane%20Doe: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
     const reviewerName = parameters?.reviewerName ? decodeURI(parameters?.reviewerName): undefined;
 
     if (!body) {

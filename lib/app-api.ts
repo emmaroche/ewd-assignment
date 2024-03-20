@@ -114,6 +114,7 @@ export class AppApi extends Construct {
       },
     });
 
+    // Reference for attaching role: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_iam.FromRoleArnOptions.html
     const translateRole = cdk.aws_iam.Role.fromRoleArn(
       this,
       "translate",
