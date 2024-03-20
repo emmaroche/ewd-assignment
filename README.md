@@ -33,9 +33,19 @@ AppApi Endpoints Continued
 
 ### Authentication
 
+The app's infrastructure stack includes a separate API for processing user authentication requests. It allows users to sign up, confirm signup, log in, and log out.
+
 Below is a screenshot from the AWS management console (Cognito User Pools) showing my confirmed user account.
 
 ![](./images/Auth.png)
+
+### Authorization:
+
+Only authenticated users are allowed to perform POST and PUT requests, whereas GET requests are publicly accessible.
+
+### Amazon Translate:
+
+The reviews content text can be translated to a different language with Amazon Translate via the GET /reviews/{reviewerName}/{movieId}/translation?language=code request.
 
 ### Independent learning 
 
